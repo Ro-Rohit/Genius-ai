@@ -1,5 +1,4 @@
 import { useState } from 'react';
-import PDFViewer from './pdf-viewer';
 import { Prism as SyntaxHighlighter } from 'react-syntax-highlighter';
 import { nightOwl } from 'react-syntax-highlighter/dist/esm/styles/prism';
 import { NextPage } from 'next';
@@ -7,10 +6,13 @@ import { Copy } from 'lucide-react';
 import { toast } from 'sonner';
 import { Button } from './ui/button';
 import { ScrollArea, ScrollBar } from './ui/scroll-area';
+import dynamic from 'next/dynamic';
 
+const PDFViewer = dynamic(() => import('./pdf-viewer'), { ssr: false });
 interface Props {
   file: File;
 }
+
 const DocumentUploader: NextPage<Props> = ({ file }) => {
   const [fileContents, setFileContents] = useState<string | null>(null);
   const [fileType, setFileType] = useState<string | null>(null);

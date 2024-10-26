@@ -4,25 +4,14 @@ import { Document, Page, pdfjs } from 'react-pdf';
 
 import useWindowWidth from './use-screen-width';
 import { ChevronLeft, ChevronRight } from 'lucide-react';
-import dynamic from 'next/dynamic';
-
-//@ts-ignore
-if (typeof Promise.withResolvers === 'undefined') {
-  if (window)
-    // @ts-expect-error This does not exist outside of polyfill which this is doing
-    window.Promise.withResolvers = function () {
-      let resolve, reject;
-      const promise = new Promise((res, rej) => {
-        resolve = res;
-        reject = rej;
-      });
-      return { promise, resolve, reject };
-    };
-}
 
 pdfjs.GlobalWorkerOptions.workerSrc = `//unpkg.com/pdfjs-dist@${pdfjs.version}/build/pdf.worker.min.mjs`;
 
-export default function PDFViewer({ file }: { file: File }) {
+interface Props {
+  file: File;
+}
+
+export default function PDFViewer({ file }: Props) {
   const [numPages, setNumPages] = useState<number>(0);
   const [pageNumber, setPageNumber] = useState<number>(1); // start on first page
   const [loading, setLoading] = useState(true);
