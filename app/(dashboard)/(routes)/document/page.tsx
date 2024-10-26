@@ -277,7 +277,7 @@ const DocumentPage: NextPage = () => {
                 />
               </div>
             </CollapsibleContent>
-            <Button className="col-span-12 md:col-span-3" type="submit" disabled={isLoading}>
+            <Button className="col-span-12 md:col-span-2" type="submit" disabled={isLoading}>
               Generate
             </Button>
           </Collapsible>

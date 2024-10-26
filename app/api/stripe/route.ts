@@ -4,8 +4,9 @@ import Stripe from 'stripe';
 import { getAbsoluteUrl } from '@/lib/utils';
 import { getSubscriptionData } from '@/actions/get-subscription-data';
 
-const stripe = new Stripe(process.env.STRIPE_SECRET_KEY as string);
+export const dynamic = 'force-dynamic';
 
+const stripe = new Stripe(process.env.STRIPE_SECRET_KEY as string);
 const settingUrl = getAbsoluteUrl('/settings');
 
 export async function GET(request: Request) {
