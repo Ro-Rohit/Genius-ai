@@ -5,11 +5,16 @@ import { Document, Page, pdfjs } from 'react-pdf';
 import useWindowWidth from './use-screen-width';
 import { ChevronLeft, ChevronRight } from 'lucide-react';
 
-pdfjs.GlobalWorkerOptions.workerSrc = `//unpkg.com/pdfjs-dist@${pdfjs.version}/build/pdf.worker.min.mjs`;
+const options = {
+  cMapUrl: 'cmaps/',
+  cMapPacked: true,
+  standardFontDataUrl: 'standard_fonts/',
+};
 
 interface Props {
   file: File;
 }
+pdfjs.GlobalWorkerOptions.workerSrc = `//unpkg.com/pdfjs-dist@${pdfjs.version}/build/pdf.worker.min.mjs`;
 
 export default function PDFViewer({ file }: Props) {
   const [numPages, setNumPages] = useState<number>(0);
@@ -32,14 +37,6 @@ export default function PDFViewer({ file }: Props) {
   function goToPreviousPage() {
     setPageNumber(prevPageNumber => prevPageNumber - 1);
   }
-
-  const options = useMemo(() => {
-    return {
-      cMapUrl: 'cmaps/',
-      cMapPacked: true,
-      standardFontDataUrl: 'standard_fonts/',
-    };
-  }, []);
 
   const fileSlice = useMemo(() => file.slice(0), [file]);
 
