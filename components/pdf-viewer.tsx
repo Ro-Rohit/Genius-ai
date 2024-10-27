@@ -31,11 +31,11 @@ export default function PDFViewer({ file }: Props) {
   }
 
   function goToNextPage() {
-    setPageNumber(prevPageNumber => prevPageNumber + 1);
+    if (numPages > pageNumber) setPageNumber(prevPageNumber => prevPageNumber + 1);
   }
 
   function goToPreviousPage() {
-    setPageNumber(prevPageNumber => prevPageNumber - 1);
+    if (pageNumber > 1) setPageNumber(prevPageNumber => prevPageNumber - 1);
   }
 
   const fileSlice = useMemo(() => file.slice(0), [file]);
@@ -48,17 +48,15 @@ export default function PDFViewer({ file }: Props) {
           onLoadSuccess={onDocumentLoadSuccess}
           options={options}
           renderMode="canvas"
-          className=""
         >
           <Page
-            className=""
             key={pageNumber}
             pageNumber={pageNumber}
             renderAnnotationLayer={false}
             renderTextLayer={false}
             onLoadSuccess={onPageLoadSuccess}
             onRenderError={() => setLoading(false)}
-            width={Math.max(width * 0.4, 250)}
+            width={Math.max(width * 0.4, 280)}
           />
         </Document>
       </div>

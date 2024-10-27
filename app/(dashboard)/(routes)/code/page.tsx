@@ -147,29 +147,33 @@ const CodeGenerationPage: NextPage = () => {
 
     setText('');
     let fullResponseText = '';
-    const typingSpeed = 5;
+    const batchSize = 5;
+    let count = 0;
 
     while (!done) {
       const { value, done: doneReading } = await reader.read();
       done = doneReading;
+
       if (value) {
         const chunk = decoder.decode(value, { stream: true });
+
         for (let i = 0; i < chunk.length; i++) {
-          fullResponseText += chunk[i]; // Accumulate the response character by character
-          appendCharacter(chunk[i], typingSpeed); // Simulate typing effect
-          await new Promise(resolve => setTimeout(resolve, typingSpeed)); // Delay between each character
+          fullResponseText += chunk[i];
+
+          // If we've reached the batch size, update the state
+          if (count >= batchSize) setText(fullResponseText);
+          count >= batchSize ? (count = 0) : count++;
+
+          // Yield to the UI for each chunk
+          await new Promise(resolve => setTimeout(resolve, 5));
         }
       }
     }
     return fullResponseText;
   };
 
-  const appendCharacter = (char: string, speed: number) => {
-    setText(prev => (prev ? prev + char : char));
-  };
-
   useLoadAlert();
-  useScroll(messagesEndRef, [contents, text, setContent, setText]);
+  useScroll(messagesEndRef, [isLoading, setIsLoading]);
 
   return (
     <section className="relative h-[calc(100vh-130px)] w-full px-2">
@@ -238,7 +242,13 @@ const CodeGenerationPage: NextPage = () => {
                   'my-4 flex flex-col items-start gap-x-8 gap-y-2 rounded-md bg-accent p-4 lg:flex-row lg:items-center'
                 }
               >
-                <Image className="self-start" src={'/logo.png'} alt="model" height={30} width={30} />
+                <Image
+                  className="self-start"
+                  src={'/logo.png'}
+                  alt="model"
+                  height={30}
+                  width={30}
+                />
                 <Markdown text={text} />
               </div>
             )}

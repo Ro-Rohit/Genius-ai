@@ -48,7 +48,7 @@ const HighLighter = ({ code, lang }: { code: string; lang?: string }) => {
     navigator.clipboard.writeText(code);
   };
   return (
-    <ScrollArea className="relative h-full max-h-[500px] w-full max-w-[850px] py-4">
+    <ScrollArea className="relative h-full max-h-[500px] w-full max-w-[700px] overflow-y-auto py-4">
       <div
         onClick={onCopy}
         className="absolute right-4 top-8 cursor-copy rounded-sm p-2 text-gray-500 transition hover:bg-accent hover:text-gray-700"

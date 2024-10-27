@@ -42,7 +42,7 @@ const ImageGenerationPage: NextPage = () => {
   const [isLoading, setIsLoading] = useState(false);
   const messagesEndRef = useRef(null);
 
-  const { history, setHistory, createChat, clearHistory } = useImageStore();
+  const { history, setHistory, createChat } = useImageStore();
   const { count, setCount, isPro } = useCountStore();
   const { setIsOpen } = useSubscriptionModalStore();
   const [isCollapse, setIsCollapse] = useState(true);
@@ -57,25 +57,18 @@ const ImageGenerationPage: NextPage = () => {
   const onUpdate = async (value: string, idx: number) => {
     try {
       if (checkUserApiLimit()) return;
-      setIsLoading(true);
-
-      history[idx].parts = value;
-      history[idx + 1].parts = 'Genius is thinking...';
-      let reference = history;
-      clearHistory();
-      setHistory(reference);
+      const updatedHistory = [...history];
+      updatedHistory[idx].parts = value;
+      updatedHistory[idx].parts = 'Genius is thinking...';
+      setHistory(updatedHistory);
 
       const modelResponse = await generateResponse(value);
-      history[idx + 1].parts = modelResponse;
-      reference = history;
-      clearHistory();
+      updatedHistory[idx + 1].parts = modelResponse;
       setHistory(history);
 
       await increaseApiCount();
     } catch (error) {
       toast.error('something went wrong.');
-    } finally {
-      setIsLoading(false);
     }
   };
 
@@ -104,12 +97,13 @@ const ImageGenerationPage: NextPage = () => {
       return;
     }
     const userChat = createChat('user', values.message);
-    setHistory([userChat]);
+    const data = [...history, userChat];
+    setHistory(data);
     try {
       setIsLoading(true);
       const imageUrl = await generateResponse(values.message);
       const modelChat = createChat('model', imageUrl);
-      setHistory([modelChat]);
+      setHistory([...data, modelChat]);
       await increaseApiCount();
       form.reset();
     } catch (error) {
@@ -126,7 +120,7 @@ const ImageGenerationPage: NextPage = () => {
   };
 
   useLoadAlert();
-  useScroll(messagesEndRef, [history, setHistory]);
+  useScroll(messagesEndRef, [isLoading, setIsLoading]);
 
   return (
     <section className="relative h-[calc(100vh-130px)] w-full px-2">

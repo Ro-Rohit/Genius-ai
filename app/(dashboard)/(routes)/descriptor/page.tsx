@@ -161,30 +161,33 @@ const DescriptorPage: NextPage = () => {
 
     setText('');
     let fullResponseText = '';
-    const typingSpeed = 5;
+    const batchSize = 5;
+    let count = 0;
 
     while (!done) {
       const { value, done: doneReading } = await reader.read();
       done = doneReading;
+
       if (value) {
         const chunk = decoder.decode(value, { stream: true });
-        fullResponseText += chunk;
 
         for (let i = 0; i < chunk.length; i++) {
-          appendCharacter(chunk[i], typingSpeed);
-          await new Promise(resolve => setTimeout(resolve, typingSpeed));
+          fullResponseText += chunk[i];
+
+          // If we've reached the batch size, update the state
+          if (count >= batchSize) setText(fullResponseText);
+          count >= batchSize ? (count = 0) : count++;
+
+          // Yield to the UI for each chunk
+          await new Promise(resolve => setTimeout(resolve, 5));
         }
       }
     }
     return fullResponseText;
   };
 
-  const appendCharacter = (char: string, speed: number) => {
-    setText(prev => (prev ? prev + char : char));
-  };
-
   useLoadAlert();
-  useScroll(messagesEndRef, [history, setHistory]);
+  useScroll(messagesEndRef, [history, setHistory, isLoading, setIsLoading]);
 
   return (
     <section className="relative h-[calc(100vh-130px)] w-full px-2">
