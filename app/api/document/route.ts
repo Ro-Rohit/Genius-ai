@@ -50,7 +50,6 @@ export async function POST(request: Request) {
       return new NextResponse('Internal Error', { status: 500 });
     }
 
-    console.log(`Uploaded file ${uploadResponse.file.displayName} as: ${uploadResponse.file.uri}`);
 
     const model = genAI.getGenerativeModel({
       model: 'gemini-1.5-flash',

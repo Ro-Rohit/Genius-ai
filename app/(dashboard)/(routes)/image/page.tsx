@@ -154,13 +154,19 @@ const ImageGenerationPage: NextPage = () => {
                 <div
                   key={idx}
                   className={cn(
-                    'my-4 flex items-center gap-x-8 rounded-md p-4',
+                    'my-4 flex flex-col items-start gap-x-8 gap-y-2 rounded-md p-4 lg:flex-row lg:items-center',
                     isModel ? 'bg-accent' : 'border bg-white'
                   )}
                 >
                   {isModel && (
                     <>
-                      <Image src={'/logo.png'} alt="model" height={30} width={30} />
+                      <Image
+                        className="self-start"
+                        src={'/logo.png'}
+                        alt="model"
+                        height={30}
+                        width={30}
+                      />
                       {chat.parts.includes('Genius is thinking...') ? (
                         <p>{chat.parts}</p>
                       ) : (
@@ -201,7 +207,7 @@ const ImageGenerationPage: NextPage = () => {
               onOpenChange={setIsCollapse}
               className="grid w-full grid-cols-12 gap-4"
             >
-              <CollapsibleContent className="col-span-12 md:col-span-9">
+              <CollapsibleContent className="col-span-12 md:col-span-10">
                 <FormField
                   control={form.control}
                   name="message"
@@ -228,15 +234,15 @@ const ImageGenerationPage: NextPage = () => {
           </form>
         </Form>
       </div>
-      <Button
+      <div
         onClick={() => setIsCollapse(!isCollapse)}
-        asChild
-        className="absolute bottom-14 left-5 cursor-pointer md:hidden"
-        variant="ghost"
-        size="sm"
+        className={cn(
+          'absolute -bottom-1 -left-5 cursor-pointer rounded-full bg-accent p-2.5 transition duration-100 md:hidden',
+          isCollapse ? 'scale-75' : 'scale-100'
+        )}
       >
-        <ChevronsUpDown className="size-6 text-gray-500" />
-      </Button>
+        <ChevronsUpDown className="size-6 rotate-45 text-zinc-600" />
+      </div>
     </section>
   );
 };

@@ -26,7 +26,7 @@ import { insertUserApiLmit } from '@/actions/insert-api-count';
 import { useCountStore } from '@/store/use-count-store';
 import useSubscriptionModalStore from '@/store/subscription-modal-store';
 import TextField from '@/components/text-field';
-import { ArrowUpDown, ChevronsUpDown } from 'lucide-react';
+import { ChevronsUpDown } from 'lucide-react';
 import { Collapsible, CollapsibleContent } from '@/components/ui/collapsible';
 
 const formSchema = z.object({
@@ -79,19 +79,18 @@ const CodeGenerationPage: NextPage = () => {
       const newChat = createContent('user', value);
       tempContents.push(newChat);
 
-      contents[idx].parts[0].text = value;
-      contents[idx + 1].parts[0].text = 'Genius is thinking...';
-      let reference = contents;
-      setContent(reference);
+      const updatedContents = [...contents];
+      updatedContents[idx].parts[0].text = value;
+      updatedContents[idx + 1].parts[0].text = 'Genius is thinking...';
+      setContent(updatedContents);
 
       const modelResponse = await generateStreamResponse(tempContents);
       setUpdateNo(idx + 1);
       const fullResponseText = await processStreamResponse(modelResponse);
-      contents[idx + 1].parts[0].text = fullResponseText;
-
-      reference = contents;
-      setContent(reference);
+      updatedContents[idx + 1].parts[0].text = fullResponseText;
+      setContent(updatedContents);
       setText(null);
+      setUpdateNo(null);
       await increaseApiCount();
     } catch (error) {
       toast.error('something went wrong.');
@@ -197,11 +196,19 @@ const CodeGenerationPage: NextPage = () => {
                 <div
                   key={idx}
                   className={cn(
-                    'my-4 flex items-center gap-x-8 rounded-md p-4',
+                    'my-4 flex flex-col items-start gap-x-8 gap-y-1 rounded-md p-4 md:flex-row md:items-center',
                     isModel ? 'bg-accent' : 'border bg-white'
                   )}
                 >
-                  {isModel && <Image src={'/logo.png'} alt="model" height={30} width={30} />}
+                  {isModel && (
+                    <Image
+                      className="self-start"
+                      src={'/logo.png'}
+                      alt="model"
+                      height={30}
+                      width={30}
+                    />
+                  )}
                   {isModel && (
                     <Markdown text={updateNo === idx ? (text ?? '') : chat.parts?.[0].text} />
                   )}
@@ -226,8 +233,12 @@ const CodeGenerationPage: NextPage = () => {
 
             {/* stream response  */}
             {updateNo === null && text && (
-              <div className={'my-4 flex items-center gap-x-8 rounded-md bg-accent p-4'}>
-                <Image src={'/logo.png'} alt="model" height={30} width={30} />
+              <div
+                className={
+                  'my-4 flex flex-col items-start gap-x-8 gap-y-2 rounded-md bg-accent p-4 lg:flex-row lg:items-center'
+                }
+              >
+                <Image className="self-start" src={'/logo.png'} alt="model" height={30} width={30} />
                 <Markdown text={text} />
               </div>
             )}
@@ -275,15 +286,15 @@ const CodeGenerationPage: NextPage = () => {
           </form>
         </Form>
 
-        <Button
+        <div
           onClick={() => setIsCollapse(!isCollapse)}
-          asChild
-          className="absolute bottom-20 left-5 cursor-pointer md:hidden"
-          variant="ghost"
-          size="sm"
+          className={cn(
+            'absolute -bottom-1 -left-5 cursor-pointer rounded-full bg-accent p-2.5 transition duration-100 md:hidden',
+            isCollapse ? 'scale-75' : 'scale-100'
+          )}
         >
-          <ChevronsUpDown className="size-6 text-gray-500" />
-        </Button>
+          <ChevronsUpDown className="size-6 rotate-45 text-zinc-600" />
+        </div>
       </div>
     </section>
   );

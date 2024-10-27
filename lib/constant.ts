@@ -2,7 +2,6 @@ import { useCodeStore } from '@/store/use-code-store';
 import { useDocumentStore } from '@/store/use-document-store';
 import { useDescriptorStore } from '@/store/use-descriptor-store';
 import { useImageStore } from '@/store/use-image-store';
-import { useRestoreImageStore } from '@/store/use-restore-store';
 import { useSpeechStore } from '@/store/use-speech-store';
 import {
   LayoutDashboard,
@@ -11,9 +10,12 @@ import {
   Music,
   Code,
   Settings,
-  AudioLines,
+  VideoIcon,
   LetterText,
 } from 'lucide-react';
+import { useVisionStore } from '@/store/use-vision-store';
+
+export const MAX_COUNT = 5;
 
 export const routes = [
   {
@@ -30,7 +32,7 @@ export const routes = [
     color: 'text-cyan-500',
     href: '/code',
     iconbg: 'bg-cyan-500/10',
-    description: 'Generates code in specified language',
+    description: 'Generates code in for you.',
   },
   {
     label: 'Descriptor',
@@ -46,7 +48,7 @@ export const routes = [
     color: 'text-orange-500',
     href: '/document',
     iconbg: 'bg-orange-500/10',
-    description: 'Process document to give you insights',
+    description: 'Summarise thr document content',
   },
 
   {
@@ -57,14 +59,6 @@ export const routes = [
     iconbg: 'bg-pink-500/10',
     description: 'Our most advanced Image generation model',
   },
-  {
-    label: 'Restore Image',
-    icon: AudioLines,
-    color: 'text-yellow-500',
-    href: '/restore',
-    iconbg: 'bg-yellow-500/10',
-    description: 'Edit image based on prompt',
-  },
 
   {
     label: 'Speech Recognition',
@@ -72,7 +66,15 @@ export const routes = [
     color: 'text-emerald-500',
     href: '/speech',
     iconbg: 'bg-emerald-500/10',
-    description: 'transcribe  audio to text.',
+    description: 'Summarize the audio content',
+  },
+  {
+    label: 'Vision',
+    icon: VideoIcon,
+    color: 'text-yellow-500',
+    href: '/vision',
+    iconbg: 'bg-yellow-500/10',
+    description: 'Summarize the video content',
   },
   {
     label: 'Settings',
@@ -186,7 +188,7 @@ export const useGetStore = (label: string): StoreType => {
       return { history, clearHistory };
 
     case 'Restore Image':
-      store = useRestoreImageStore();
+      store = useVisionStore();
       history = store.history;
       clearHistory = store.clearHistory;
       return { history, clearHistory };

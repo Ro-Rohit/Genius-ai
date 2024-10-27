@@ -18,11 +18,9 @@ export async function POST(request: Request) {
     }
 
     const response = await inference.textToImage({
-      model: 'black-forest-labs/FLUX.1-dev',
+      model: 'stabilityai/stable-diffusion-3-medium-diffusers',
       inputs: message,
     });
-    console.log(response);
-    // const buffer = Buffer.from(await response.arrayBuffer());
 
     return new NextResponse(response, {
       status: 200,

@@ -16,7 +16,7 @@ const Markdown: NextPage<Props> = ({ text }) => {
         ),
         code: ({ ...props }) => <code className="rounded-lg bg-black/10 p-1" {...props} />,
       }}
-      className={'overflow-hidden text-sm leading-7'}
+      className={'overflow-x-auto text-sm leading-7'}
     >
       {text}
     </ReactMarkdown>

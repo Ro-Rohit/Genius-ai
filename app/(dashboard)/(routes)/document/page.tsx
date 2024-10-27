@@ -121,6 +121,7 @@ const DocumentPage: NextPage = () => {
     } catch (error) {
       toast.error('something went wrong');
     } finally {
+      setIsLoading(false);
     }
   }
 
@@ -195,7 +196,7 @@ const DocumentPage: NextPage = () => {
                 <div
                   key={idx}
                   className={cn(
-                    'my-4 flex items-center gap-x-8 rounded-md p-4',
+                    'my-4 flex flex-col items-start gap-x-8 gap-y-2 rounded-md p-4 lg:flex-row lg:items-center',
                     isModel ? 'bg-accent' : 'border bg-white'
                   )}
                 >
@@ -208,10 +209,12 @@ const DocumentPage: NextPage = () => {
 
                   {!isModel && (
                     <>
-                      <Avator
-                        imagurl={user?.imageUrl}
-                        name={user?.firstName?.charAt(0).toUpperCase()}
-                      />
+                      <div className="self-start">
+                        <Avator
+                          imagurl={user?.imageUrl}
+                          name={user?.firstName?.charAt(0).toUpperCase()}
+                        />
+                      </div>
                       <div className="flex flex-col space-y-2">
                         <DocumentUploader file={chat.parts.file} />
                         <TextField
@@ -229,8 +232,18 @@ const DocumentPage: NextPage = () => {
 
             {/* stream response  */}
             {updateNo === null && text && (
-              <div className={'my-4 flex items-start gap-x-8 rounded-md bg-accent p-4'}>
-                <Image src={'/logo.png'} alt="model" height={30} width={30} />
+              <div
+                className={
+                  'my-4 flex flex-col items-start gap-x-8 gap-y-2 rounded-md bg-accent p-4 lg:flex-row lg:items-center'
+                }
+              >
+                <Image
+                  className="self-start"
+                  src={'/logo.png'}
+                  alt="model"
+                  height={30}
+                  width={30}
+                />
                 <Markdown text={text} />
               </div>
             )}
@@ -246,8 +259,8 @@ const DocumentPage: NextPage = () => {
             onOpenChange={setIsCollapse}
             className="grid w-full grid-cols-12 gap-4"
           >
-            <CollapsibleContent className="col-span-12 grid grid-cols-12 gap-x-4 md:col-span-9">
-              <div className="col-span-12 md:col-span-9">
+            <CollapsibleContent className="col-span-12 grid grid-cols-12 gap-x-4 gap-y-2 md:col-span-9 lg:col-span-10">
+              <div className="col-span-12 md:col-span-8">
                 <Input
                   disabled={isLoading}
                   required
@@ -261,7 +274,7 @@ const DocumentPage: NextPage = () => {
                   }}
                 />
               </div>
-              <div className="col-span-12 md:col-span-3">
+              <div className="col-span-12 md:col-span-4">
                 <Input
                   disabled={isLoading}
                   ref={fileRef}
@@ -277,21 +290,25 @@ const DocumentPage: NextPage = () => {
                 />
               </div>
             </CollapsibleContent>
-            <Button className="col-span-12 md:col-span-2" type="submit" disabled={isLoading}>
+            <Button
+              className="col-span-12 md:col-span-3 lg:col-span-2"
+              type="submit"
+              disabled={isLoading}
+            >
               Generate
             </Button>
           </Collapsible>
         </form>
       </div>
-      <Button
+      <div
         onClick={() => setIsCollapse(!isCollapse)}
-        asChild
-        className="absolute bottom-14 left-5 cursor-pointer md:hidden"
-        variant="ghost"
-        size="sm"
+        className={cn(
+          'absolute -bottom-1 -left-5 cursor-pointer rounded-full bg-accent p-2.5 transition duration-100 md:hidden',
+          isCollapse ? 'scale-75' : 'scale-100'
+        )}
       >
-        <ChevronsUpDown className="size-6 text-gray-500" />
-      </Button>
+        <ChevronsUpDown className="size-6 rotate-45 text-zinc-600" />
+      </div>
     </section>
   );
 };

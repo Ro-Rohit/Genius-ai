@@ -4,7 +4,6 @@ import { nightOwl } from 'react-syntax-highlighter/dist/esm/styles/prism';
 import { NextPage } from 'next';
 import { Copy } from 'lucide-react';
 import { toast } from 'sonner';
-import { Button } from './ui/button';
 import { ScrollArea, ScrollBar } from './ui/scroll-area';
 import dynamic from 'next/dynamic';
 
@@ -49,20 +48,24 @@ const HighLighter = ({ code, lang }: { code: string; lang?: string }) => {
     navigator.clipboard.writeText(code);
   };
   return (
-    <ScrollArea className="relative h-full max-h-[500px] w-full py-4">
-      <Button
+    <ScrollArea className="relative h-full max-h-[500px] w-full max-w-[850px] py-4">
+      <div
         onClick={onCopy}
-        size={'sm'}
-        variant={'ghost'}
-        asChild
-        className="absolute right-1 top-1 z-10 cursor-copy"
+        className="absolute right-4 top-8 cursor-copy rounded-sm p-2 text-gray-500 transition hover:bg-accent hover:text-gray-700"
       >
         <Copy className="size-5" />
-      </Button>
-      <SyntaxHighlighter language={lang} style={nightOwl}>
+      </div>
+
+      <SyntaxHighlighter
+        customStyle={{ height: '100%', width: '100%', overflow: 'visible' }}
+        language={lang}
+        style={nightOwl}
+      >
         {code}
       </SyntaxHighlighter>
+
       <ScrollBar orientation="horizontal" />
+      <ScrollBar orientation="vertical" />
     </ScrollArea>
   );
 };

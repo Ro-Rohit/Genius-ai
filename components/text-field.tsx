@@ -32,7 +32,7 @@ const TextField: NextPage<Props> = ({ isEditable = true, text, onSubmit }) => {
   }
 
   return (
-    <div className="group h-full w-full self-center">
+    <div className="group h-full w-full">
       {!edit && (
         <div className="relative flex w-full items-center gap-x-1.5">
           <Markdown text={value} />

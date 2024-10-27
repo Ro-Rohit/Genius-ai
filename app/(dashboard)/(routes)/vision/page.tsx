@@ -1,7 +1,7 @@
 'use client';
 
 import Heading from '@/components/heading';
-import { MAX_COUNT, routes } from '@/lib/constant';
+import { routes } from '@/lib/constant';
 import { NextPage } from 'next';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -14,38 +14,37 @@ import { useLoadAlert } from '@/components/useLoadAlert';
 import Loader from '@/components/loader';
 import Empty from '@/components/Empty';
 import { useScroll } from '@/components/useScroll';
-import { useSpeechStore } from '@/store/use-speech-store';
 import Avator from '@/components/avator';
+import { insertUserApiLmit } from '@/actions/insert-api-count';
 import { useCountStore } from '@/store/use-count-store';
 import useSubscriptionModalStore from '@/store/subscription-modal-store';
-import { insertUserApiLmit } from '@/actions/insert-api-count';
-import Markdown from '../../../../components/markdown';
-import { Collapsible } from '@radix-ui/react-collapsible';
-import { CollapsibleContent } from '@/components/ui/collapsible';
-import { ChevronsUpDown } from 'lucide-react';
+import Markdown from '@/components/markdown';
 import TextField from '@/components/text-field';
+import DocumentUploader from '@/components/document-component';
+import { Collapsible, CollapsibleContent } from '@/components/ui/collapsible';
+import { ChevronsUpDown } from 'lucide-react';
+import { useVisionStore } from '@/store/use-vision-store';
 
-const headingData = routes[5];
+const headingData = routes[6];
 
-const speechGenerationPage: NextPage = () => {
+const VisionPage: NextPage = () => {
   const { user } = useUser();
   const [isLoading, setIsLoading] = useState(false);
-  const [file, setFile] = useState<File>();
-
   const messagesEndRef = useRef(null);
-  const fileRef = useRef<HTMLInputElement>(null);
 
-  const { history, setHistory, createChat } = useSpeechStore();
-  const { count, setCount, isPro } = useCountStore();
-  const { setIsOpen } = useSubscriptionModalStore();
-  const [isCollapse, setIsCollapse] = useState(true);
+  const { history, setHistory, createChat } = useVisionStore();
   const [message, setMessage] = useState<string>('');
   const [updateNo, setUpdateNo] = useState<number | null>(null);
   const [text, setText] = useState<string | null>(null);
+  const [file, setFile] = useState<File>();
+  const fileRef = useRef<HTMLInputElement>(null);
+  const { count, setCount, isPro } = useCountStore();
+  const { setIsOpen } = useSubscriptionModalStore();
+  const [isCollapse, setIsCollapse] = useState(true);
 
   const checkUserApiLimit = () => {
     if (isPro) return false;
-    if (user && count >= MAX_COUNT) {
+    if (user && count >= 5) {
       setIsOpen(true);
       return true;
     }
@@ -54,7 +53,7 @@ const speechGenerationPage: NextPage = () => {
 
   const increaseApiCount = async () => {
     if (isPro) return;
-    if (user && !isPro && count < MAX_COUNT) {
+    if (user && !isPro && count < 5) {
       await insertUserApiLmit(user.id, count + 1);
       setCount(count + 1);
     }
@@ -132,7 +131,7 @@ const speechGenerationPage: NextPage = () => {
     formData.append('file', data.file);
     formData.append('message', data.message);
 
-    const res = await fetch('/api/speech', {
+    const res = await fetch('/api/vision', {
       method: 'POST',
       body: formData,
     });
@@ -171,7 +170,6 @@ const speechGenerationPage: NextPage = () => {
 
   useLoadAlert();
   useScroll(messagesEndRef, [history, setHistory]);
-
   return (
     <section className="relative h-[calc(100vh-130px)] w-full px-2">
       <Heading
@@ -214,6 +212,7 @@ const speechGenerationPage: NextPage = () => {
                       <Markdown text={updateNo === idx ? (text ?? '') : chat.parts} />
                     </>
                   )}
+
                   {!isModel && (
                     <>
                       <div className="self-start">
@@ -222,13 +221,13 @@ const speechGenerationPage: NextPage = () => {
                           name={user?.firstName?.charAt(0).toUpperCase()}
                         />
                       </div>
-                      <div className="w-full">
-                        <audio src={chat.parts.url} controls></audio>
-                        <TextField
-                          text={chat.parts.message}
-                          onSubmit={(value: string) => onUpdate(value, idx)}
-                        />
-                      </div>
+                      <video src={chat.parts.url} controls />
+                      <TextField
+                        text={chat.parts.message}
+                        onSubmit={(prompt: string) => {
+                          onUpdate(prompt, idx);
+                        }}
+                      />
                     </>
                   )}
                 </div>
@@ -239,7 +238,7 @@ const speechGenerationPage: NextPage = () => {
             {updateNo === null && text && (
               <div
                 className={
-                  'my-4 flex flex-col items-start gap-x-8 gap-y-2 rounded-md bg-accent p-4 lg:flex-row lg:items-center'
+                  'my-4 flex flex-col items-start gap-x-4 gap-y-2 rounded-md bg-accent p-4 lg:flex-row lg:items-center'
                 }
               >
                 <Image
@@ -271,7 +270,7 @@ const speechGenerationPage: NextPage = () => {
                   required
                   type="text"
                   value={message}
-                  placeholder="Transcript, metadata, summarize this audio."
+                  placeholder="Transcript, metadata, summarize this video"
                   autoFocus
                   className="outline-none ring-0 ring-transparent focus-visible:ring-0 focus-visible:ring-transparent"
                   onChange={e => setMessage(e.target.value)}
@@ -283,7 +282,7 @@ const speechGenerationPage: NextPage = () => {
                   ref={fileRef}
                   required
                   type="file"
-                  accept="audio/*"
+                  accept="video/*"
                   className="cursor-pointer outline-none ring-0 ring-transparent focus-visible:ring-0 focus-visible:ring-transparent"
                   onChange={e => setFile(e.target.files?.[0])}
                 />
@@ -312,4 +311,4 @@ const speechGenerationPage: NextPage = () => {
   );
 };
 
-export default speechGenerationPage;
+export default VisionPage;

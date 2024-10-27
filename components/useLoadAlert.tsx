@@ -3,8 +3,8 @@ import { useSpeechStore } from '@/store/use-speech-store';
 import { useDescriptorStore } from '@/store/use-descriptor-store';
 import { useEffect } from 'react';
 import { useImageStore } from '@/store/use-image-store';
-import { useRestoreImageStore } from '@/store/use-restore-store';
 import { useDocumentStore } from '@/store/use-document-store';
+import { useVisionStore } from '@/store/use-vision-store';
 
 export const useLoadAlert = () => {
   const { history: videoHistory } = useDescriptorStore();
@@ -12,7 +12,7 @@ export const useLoadAlert = () => {
   const { history: DocHistory } = useDocumentStore();
   const { history: musicHistory } = useSpeechStore();
   const { history: imageHistory } = useImageStore();
-  const { history: restoreHistory } = useRestoreImageStore();
+  const { history: restoreHistory } = useVisionStore();
 
   useEffect(() => {
     const handleBeforeUnload = (event: any) => {

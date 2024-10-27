@@ -58,7 +58,7 @@ const DashboardLayout: NextPage<Props> = ({ children }) => {
 
       <MobileSidebar />
 
-      <div className="h-full w-full p-3 md:pl-72">
+      <div className="h-full w-full px-3 py-2 md:pl-72">
         <header className="flex items-center">
           <Menu
             onClick={() => {

@@ -53,7 +53,7 @@ export async function POST(request: Request) {
     }
 
     if (remoteFile.state === FileState.FAILED) {
-      return new NextResponse('Audio processing failed', { status: 500 });
+      return new NextResponse('Video processing failed', { status: 500 });
     }
 
     const response = await model.generateContentStream([

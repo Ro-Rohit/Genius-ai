@@ -1,18 +1,18 @@
 import { create } from 'zustand';
 
-export type restoreHistoryType = {
+export type visionHistoryType = {
   role: 'user' | 'model';
   parts: any;
 };
 
 interface Props {
-  history: restoreHistoryType[];
-  createChat: (role: 'user' | 'model', part: any) => restoreHistoryType;
-  setHistory: (history: restoreHistoryType[]) => void;
+  history: visionHistoryType[];
+  createChat: (role: 'user' | 'model', part: any) => visionHistoryType;
+  setHistory: (history: visionHistoryType[]) => void;
   clearHistory: () => void;
 }
 
-export const useRestoreImageStore = create<Props>(set => ({
+export const useVisionStore = create<Props>(set => ({
   history: [],
   setHistory(history) {
     set(pre => ({ history: [...pre.history, ...history] }));

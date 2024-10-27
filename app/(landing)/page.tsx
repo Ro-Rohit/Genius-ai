@@ -17,7 +17,7 @@ const montserrat = Montserrat({
 export default function Home() {
   const { isSignedIn } = useAuth();
   return (
-    <section className="h-full bg-slate-950 p-4">
+    <section className="h-full min-h-screen bg-slate-950 p-4">
       <nav className="flex items-center justify-between pb-36">
         <Link href={'/'} className="flex cursor-pointer items-center gap-x-2">
           <Image src={'/logo.png'} height={30} width={30} alt="Genius" />

@@ -62,7 +62,7 @@ export default function PDFViewer({ file }: Props) {
           />
         </Document>
       </div>
-      <div className="mt-2 flex w-fit items-center gap-x-3 rounded-md bg-white p-2 shadow-lg hover:opacity-80">
+      <div className="mt-2 flex w-fit items-center gap-x-3 rounded-md bg-white p-2 shadow-sm hover:opacity-80">
         <ChevronLeft
           onClick={() => {
             goToPreviousPage();

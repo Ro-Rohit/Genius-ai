@@ -37,8 +37,9 @@ const Sidebar: NextPage = () => {
             />
           ))}
         </div>
-
-        <FreeCounter />
+        <div className="mt-auto w-full">
+          <FreeCounter />
+        </div>
       </div>
     </aside>
   );

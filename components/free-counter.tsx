@@ -6,16 +6,24 @@ import useSubscriptionModalStore from '@/store/subscription-modal-store';
 import { useCountStore } from '@/store/use-count-store';
 import { Progress } from './ui/progress';
 import { useEffect, useState } from 'react';
-
-const MAX_COUNT = 5;
+import { useSheetStore } from '@/store/sheet-store';
+import { MAX_COUNT } from '@/lib/constant';
 
 const FreeCounter: NextPage = () => {
   const { setIsOpen } = useSubscriptionModalStore();
+  const { setIsOpen: setSheetOpen } = useSheetStore();
   const { count, isPro } = useCountStore();
   const [mount, setMount] = useState(false);
+
+  const handleClick = () => {
+    setSheetOpen(false);
+    setIsOpen(true);
+  };
+
   useEffect(() => {
     setMount(true);
   }, []);
+
   if (!mount || isPro) return null;
   return (
     <div className="mt-4 flex flex-col items-center justify-center space-y-4 rounded-lg bg-slate-700 px-4 py-2 text-center">
@@ -23,7 +31,7 @@ const FreeCounter: NextPage = () => {
       <p className="text-sm text-accent">{count}/5 Free Generations</p>
       <Progress value={(count / MAX_COUNT) * 100} className="h-3" />
       <Button
-        onClick={() => setIsOpen(true)}
+        onClick={handleClick}
         variant={'premium'}
         size={'lg'}
         asChild

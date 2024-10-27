@@ -212,23 +212,31 @@ const DescriptorPage: NextPage = () => {
                 <div
                   key={idx}
                   className={cn(
-                    'my-4 flex items-start gap-x-8 rounded-md p-4',
+                    'my-4 flex flex-col items-start gap-x-8 gap-y-2 rounded-md p-4 lg:flex-row lg:items-center',
                     isModel ? 'bg-accent' : 'border bg-white'
                   )}
                 >
                   {isModel && (
                     <>
-                      <Image src={'/logo.png'} alt="model" height={30} width={30} />
+                      <Image
+                        className="self-start"
+                        src={'/logo.png'}
+                        alt="model"
+                        height={30}
+                        width={30}
+                      />
                       <Markdown text={updateNo === idx ? (text ?? '') : chat.content} />
                     </>
                   )}
 
                   {!isModel && (
                     <>
-                      <Avator
-                        imagurl={user?.imageUrl}
-                        name={user?.firstName?.charAt(0).toUpperCase()}
-                      />
+                      <div className="self-start">
+                        <Avator
+                          imagurl={user?.imageUrl}
+                          name={user?.firstName?.charAt(0).toUpperCase()}
+                        />
+                      </div>
                       <div className="flex w-full flex-col space-y-2">
                         <ImageCard url={chat.content[0].image_url?.url ?? ''} />
                         <TextField
@@ -246,8 +254,18 @@ const DescriptorPage: NextPage = () => {
 
             {/* stream response  */}
             {updateNo === null && text && (
-              <div className={'my-4 flex items-start gap-x-8 rounded-md bg-accent p-4'}>
-                <Image src={'/logo.png'} alt="model" height={30} width={30} />
+              <div
+                className={
+                  'my-4 flex flex-col items-start gap-x-8 gap-y-2 rounded-md bg-accent p-4 lg:flex-row lg:items-center'
+                }
+              >
+                <Image
+                  className="self-start"
+                  src={'/logo.png'}
+                  alt="model"
+                  height={30}
+                  width={30}
+                />
                 <Markdown text={text} />
               </div>
             )}
@@ -263,7 +281,7 @@ const DescriptorPage: NextPage = () => {
             onOpenChange={setIsCollapse}
             className="grid w-full grid-cols-12 gap-4"
           >
-            <CollapsibleContent className="col-span-12 grid grid-cols-12 gap-x-4 md:col-span-9 lg:col-span-10">
+            <CollapsibleContent className="col-span-12 grid grid-cols-12 gap-x-4 gap-y-2 md:col-span-9 lg:col-span-10">
               <div className="col-span-12 md:col-span-8">
                 <Input
                   disabled={isLoading}
@@ -286,10 +304,7 @@ const DescriptorPage: NextPage = () => {
                   type="file"
                   accept="image/*"
                   className="cursor-pointer outline-none ring-0 ring-transparent focus-visible:ring-0 focus-visible:ring-transparent"
-                  onChange={e => {
-                    const file = e.target.files?.[0];
-                    if (file) setFile(file);
-                  }}
+                  onChange={e => setFile(e.target.files?.[0])}
                 />
               </div>
             </CollapsibleContent>
@@ -305,15 +320,15 @@ const DescriptorPage: NextPage = () => {
         </form>
       </div>
 
-      <Button
+      <div
         onClick={() => setIsCollapse(!isCollapse)}
-        asChild
-        className="absolute bottom-14 left-5 cursor-pointer md:hidden"
-        variant="ghost"
-        size="sm"
+        className={cn(
+          'absolute -bottom-1 -left-5 cursor-pointer rounded-full bg-accent p-2.5 transition duration-100 md:hidden',
+          isCollapse ? 'scale-75' : 'scale-100'
+        )}
       >
-        <ChevronsUpDown className="size-6 text-gray-500" />
-      </Button>
+        <ChevronsUpDown className="size-6 rotate-45 text-zinc-600" />
+      </div>
     </section>
   );
 };
