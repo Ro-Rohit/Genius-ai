@@ -15,7 +15,7 @@ interface Props {
 export const useVisionStore = create<Props>(set => ({
   history: [],
   setHistory(history) {
-    set(pre => ({ history: [...pre.history, ...history] }));
+    set(pre => ({ history: [...history] }));
   },
   createChat(role, part) {
     return {

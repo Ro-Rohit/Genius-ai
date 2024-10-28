@@ -115,9 +115,8 @@ const VisionPage: NextPage = () => {
 
       const FullResponseText = await processStreamResponse(modelResponse);
       const modelChat = createChat('model', FullResponseText);
-      tempData = [...tempData, modelChat];
       setText(null);
-      setHistory(tempData);
+      setHistory([...tempData, modelChat]);
       await increaseApiCount();
     } catch (error) {
       toast.error('something went wrong');
@@ -226,13 +225,17 @@ const VisionPage: NextPage = () => {
                           name={user?.firstName?.charAt(0).toUpperCase()}
                         />
                       </div>
-                      <video src={chat.parts.url} controls />
-                      <TextField
-                        text={chat.parts.message}
-                        onSubmit={(prompt: string) => {
-                          onUpdate(prompt, idx);
-                        }}
-                      />
+                      <div className="flex w-full flex-col gap-y-2">
+                        <div className="aspect-auto w-full max-w-[400px] overflow-hidden">
+                          <video src={chat.parts.url} className="w-full object-contain" controls />
+                        </div>
+                        <TextField
+                          text={chat.parts.message}
+                          onSubmit={(prompt: string) => {
+                            onUpdate(prompt, idx);
+                          }}
+                        />
+                      </div>
                     </>
                   )}
                 </div>
