@@ -20,7 +20,6 @@ import { useCountStore } from '@/store/use-count-store';
 import useSubscriptionModalStore from '@/store/subscription-modal-store';
 import Markdown from '@/components/markdown';
 import TextField from '@/components/text-field';
-import DocumentUploader from '@/components/document-component';
 import { Collapsible, CollapsibleContent } from '@/components/ui/collapsible';
 import { ChevronsUpDown } from 'lucide-react';
 import { useVisionStore } from '@/store/use-vision-store';

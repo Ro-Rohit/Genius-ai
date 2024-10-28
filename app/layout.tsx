@@ -5,11 +5,18 @@ import dynamic from 'next/dynamic';
 import { Toaster } from 'sonner';
 import ModalProvider from '@/provider/Modal-provider';
 import { dark } from '@clerk/themes';
-import Head from 'next/head';
 
 export const metadata: Metadata = {
   title: 'Genius',
   description: 'An AI Software.',
+  authors: {
+    name: 'rohit.dev',
+    url: 'http://ro-rohit.github.io/',
+  },
+  keywords: ['AI', 'generative ai', 'chatgpt', 'openai', 'image generation', 'genius'],
+  icons: {
+    icon: '/favicon.ico',
+  },
 };
 
 export default function RootLayout({
@@ -21,9 +28,6 @@ export default function RootLayout({
 
   return (
     <html lang="en" suppressHydrationWarning>
-      <Head>
-        <link rel="icon" href="/favicon.ico" />
-      </Head>
       <ClerkProvider appearance={{ baseTheme: dark }} afterMultiSessionSingleSignOutUrl={'/'}>
         <CrispWithNoSSR />
         <ModalProvider />
