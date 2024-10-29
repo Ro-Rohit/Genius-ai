@@ -57,12 +57,10 @@ const ImageGenerationPage: NextPage = () => {
   const onUpdate = async (value: string, idx: number) => {
     try {
       if (checkUserApiLimit()) return;
-      const updatedHistory = [...history];
-      updatedHistory[idx].parts = value;
-      updatedHistory[idx].parts = 'Genius is thinking...';
+      const updatedHistory = getUpdatedHistory(idx, value);
       setHistory(updatedHistory);
 
-      const modelResponse = await generateResponse(value);
+      const modelResponse = await generateImage(value);
       updatedHistory[idx + 1].parts = modelResponse;
       setHistory(history);
 
@@ -70,6 +68,21 @@ const ImageGenerationPage: NextPage = () => {
     } catch (error) {
       toast.error('something went wrong.');
     }
+  };
+
+  const getUpdatedHistory = (idx: number, value: string) => {
+    const chat = history?.[idx + 1] ?? undefined;
+    const isModelChat = chat?.role === 'model';
+
+    const updatedHistory = [...history];
+    updatedHistory[idx].parts = value;
+    if (chat && isModelChat) {
+      updatedHistory[idx + 1].parts = 'Genius is thinking...';
+    } else {
+      const newChat = createChat('model', 'Genius is thinking...');
+      updatedHistory.splice(idx + 1, 0, newChat);
+    }
+    return updatedHistory;
   };
 
   const checkUserApiLimit = () => {
@@ -101,7 +114,7 @@ const ImageGenerationPage: NextPage = () => {
     setHistory(data);
     try {
       setIsLoading(true);
-      const imageUrl = await generateResponse(values.message);
+      const imageUrl = await generateImage(values.message);
       const modelChat = createChat('model', imageUrl);
       setHistory([...data, modelChat]);
       await increaseApiCount();
@@ -113,10 +126,21 @@ const ImageGenerationPage: NextPage = () => {
     }
   }
 
-  const generateResponse = async (data: any) => {
-    const res = api.post('/api/image', { message: data }, { responseType: 'blob' });
-    const result = (await res).data;
+  const generateImage = async (message: string) => {
+    let result = await generateResponse('/api/image/stability-large', message);
+    if (!result) result = await generateResponse('/api/image/stability-medium', message);
+    if (!result) result = await generateResponse('/api/image/stability-base', message);
+    if (!result) result = await generateResponse('/api/image/black-forest', message);
+    if (!result) result = await generateResponse('/api/image/toybox', message);
+    if (!result) result = await generateResponse('/api/image/shakkar-llr', message);
+    if (!result) result = await generateResponse('/api/image/shakkar-occ', message);
     return URL.createObjectURL(result);
+  };
+
+  const generateResponse = async (endpoint: string, message: string) => {
+    const res = api.post(endpoint, { message: message }, { responseType: 'blob' });
+    const result = (await res).data;
+    return result;
   };
 
   useLoadAlert();
@@ -148,7 +172,7 @@ const ImageGenerationPage: NextPage = () => {
                 <div
                   key={idx}
                   className={cn(
-                    'my-4 flex flex-col items-start gap-x-8 gap-y-2 rounded-md p-4 lg:flex-row lg:items-center',
+                    'my-4 flex flex-col items-start gap-x-8 gap-y-2 rounded-md p-4 md:flex-row md:items-center',
                     isModel ? 'bg-accent' : 'border bg-white'
                   )}
                 >
@@ -175,6 +199,7 @@ const ImageGenerationPage: NextPage = () => {
                         name={user?.firstName?.charAt(0).toUpperCase()}
                       />
                       <TextField
+                        isStreaming={false}
                         text={chat.parts}
                         onSubmit={(prompt: string) => {
                           onUpdate(prompt, idx);

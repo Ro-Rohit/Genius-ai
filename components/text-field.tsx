@@ -7,12 +7,12 @@ import { Button } from './ui/button';
 import Markdown from './markdown';
 
 interface Props {
-  isEditable?: boolean;
+  isStreaming: boolean;
   text: string;
   onSubmit: (value: string) => void;
 }
 
-const TextField: NextPage<Props> = ({ isEditable = true, text, onSubmit }) => {
+const TextField: NextPage<Props> = ({ isStreaming, text, onSubmit }) => {
   const [edit, setEdit] = useState(false);
   const [value, setValue] = useState<string>(text);
 
@@ -27,9 +27,9 @@ const TextField: NextPage<Props> = ({ isEditable = true, text, onSubmit }) => {
     setEdit(false);
   };
 
-  if (!isEditable) {
-    return <p>{value}</p>;
-  }
+  const handleClick = () => {
+    if (!isStreaming) setEdit(true);
+  };
 
   return (
     <div className="group h-full w-full">
@@ -37,7 +37,7 @@ const TextField: NextPage<Props> = ({ isEditable = true, text, onSubmit }) => {
         <div className="relative flex w-full items-center gap-x-1.5">
           <Markdown text={value} />
           <div className="mb-3 flex h-10 w-10 cursor-pointer items-center justify-center self-start rounded-full bg-transparent text-muted-foreground opacity-50 transition-all duration-100 hover:bg-muted-foreground/70 hover:text-white group-hover:opacity-100">
-            <Edit onClick={() => setEdit(true)} className="size-4" />
+            <Edit onClick={handleClick} className="size-4" />
           </div>
         </div>
       )}

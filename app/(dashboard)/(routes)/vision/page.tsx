@@ -1,7 +1,7 @@
 'use client';
 
 import Heading from '@/components/heading';
-import { routes } from '@/lib/constant';
+import { BATCH_SIZE, SPEED, routes } from '@/lib/constant';
 import { NextPage } from 'next';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -23,6 +23,7 @@ import TextField from '@/components/text-field';
 import { Collapsible, CollapsibleContent } from '@/components/ui/collapsible';
 import { ChevronsUpDown } from 'lucide-react';
 import { useVisionStore } from '@/store/use-vision-store';
+import { FileMetadataResponse } from '@google/generative-ai/server';
 
 const headingData = routes[6];
 
@@ -31,7 +32,7 @@ const VisionPage: NextPage = () => {
   const [isLoading, setIsLoading] = useState(false);
   const messagesEndRef = useRef(null);
 
-  const { history, setHistory, createChat } = useVisionStore();
+  const { history, setHistory, createChat, isStreaming, setIsStreaming } = useVisionStore();
   const [message, setMessage] = useState<string>('');
   const [updateNo, setUpdateNo] = useState<number | null>(null);
   const [text, setText] = useState<string | null>(null);
@@ -58,32 +59,46 @@ const VisionPage: NextPage = () => {
     }
   };
 
+  const getUpdatedHistory = (idx: number, value: string) => {
+    const chat = history?.[idx + 1] ?? undefined;
+    const isModelChat = chat?.role === 'model';
+
+    const updatedHistory = [...history];
+    if (!chat || !isModelChat || !chat.parts?.fileMetaData) {
+      toast.error('Video not exist.');
+      return updatedHistory;
+    }
+
+    updatedHistory[idx].parts.message = value;
+    updatedHistory[idx + 1].parts.message = 'Genius is thinking...';
+
+    return updatedHistory;
+  };
+
   const onUpdate = async (value: string, idx: number) => {
     try {
       if (checkUserApiLimit()) return;
-
-      const tempHistory = history[idx];
-      tempHistory.parts.message = value;
+      if (isStreaming) return;
 
       // updating prompt
-      let newHistory = history;
-      newHistory[idx].parts.message = value;
-      newHistory[idx + 1].parts = 'Genius is thinking...';
-      setHistory(newHistory);
+      let updatedHistory = getUpdatedHistory(idx, value);
+      setHistory(updatedHistory);
+      const fileMetaData = updatedHistory[idx + 1].parts.fileMetaData;
+      if (!fileMetaData) return;
 
       const modelResponse = await generateStreamResponse({
-        message: tempHistory.parts.message,
-        file: tempHistory.parts.file,
+        message: value,
+        fileMetaData: fileMetaData as FileMetadataResponse,
       });
+
       setUpdateNo(idx + 1);
       const fullResponseText = await processStreamResponse(modelResponse);
-      newHistory[idx + 1].parts = fullResponseText;
-      setHistory(newHistory);
+      updatedHistory[idx + 1].parts.message = fullResponseText;
+      setHistory(updatedHistory);
       setUpdateNo(null);
       setText(null);
       await increaseApiCount();
     } catch (error) {
-      console.log(error, history);
       toast.error('something went wrong.');
     }
   };
@@ -105,7 +120,11 @@ const VisionPage: NextPage = () => {
     setHistory(tempData);
     try {
       setIsLoading(true);
-      const modelResponse = await generateStreamResponse({ message: message, file: file });
+      const uploadedFileMetadata = await uploadFileToGemini(file);
+      const modelResponse = await generateStreamResponse({
+        message: message,
+        fileMetaData: uploadedFileMetadata,
+      });
       setIsLoading(false);
 
       setMessage('');
@@ -113,7 +132,12 @@ const VisionPage: NextPage = () => {
       setFile(undefined);
 
       const FullResponseText = await processStreamResponse(modelResponse);
-      const modelChat = createChat('model', FullResponseText);
+
+      const modelChat = createChat('model', {
+        fileMetaData: uploadedFileMetadata,
+        message: FullResponseText,
+      });
+
       setText(null);
       setHistory([...tempData, modelChat]);
       await increaseApiCount();
@@ -124,15 +148,28 @@ const VisionPage: NextPage = () => {
     }
   }
 
-  const generateStreamResponse = async (data: { message: string; file: File }) => {
+  const uploadFileToGemini = async (file: File) => {
     const formData = new FormData();
-
-    formData.append('file', data.file);
-    formData.append('message', data.message);
-
-    const res = await fetch('/api/vision', {
+    formData.append('file', file);
+    const res = await fetch('/api/upload', {
       method: 'POST',
       body: formData,
+    });
+    if (!res.body || !res.ok) throw new Error('no stream');
+    const data = await res.json();
+    return data.file as FileMetadataResponse;
+  };
+
+  const generateStreamResponse = async (data: {
+    message: string;
+    fileMetaData: FileMetadataResponse;
+  }) => {
+    const res = await fetch('/api/vision', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify(data),
     });
 
     if (!res.body || !res.ok) throw new Error('no stream');
@@ -145,8 +182,8 @@ const VisionPage: NextPage = () => {
     let done = false;
 
     setText('');
+    setIsStreaming(true);
     let fullResponseText = '';
-    const batchSize = 5;
     let count = 0;
 
     while (!done) {
@@ -160,14 +197,15 @@ const VisionPage: NextPage = () => {
           fullResponseText += chunk[i];
 
           // If we've reached the batch size, update the state
-          if (count >= batchSize) setText(fullResponseText);
-          count >= batchSize ? (count = 0) : count++;
+          if (count >= BATCH_SIZE) setText(fullResponseText);
+          count >= BATCH_SIZE ? (count = 0) : count++;
 
           // Yield to the UI for each chunk
-          await new Promise(resolve => setTimeout(resolve, 5));
+          await new Promise(resolve => setTimeout(resolve, SPEED));
         }
       }
     }
+    setIsStreaming(false);
     return fullResponseText;
   };
 
@@ -212,7 +250,7 @@ const VisionPage: NextPage = () => {
                         height={30}
                         width={30}
                       />
-                      <Markdown text={updateNo === idx ? (text ?? '') : chat.parts} />
+                      <Markdown text={updateNo === idx ? (text ?? '') : chat.parts.message} />
                     </>
                   )}
 
@@ -229,6 +267,7 @@ const VisionPage: NextPage = () => {
                           <video src={chat.parts.url} className="w-full object-contain" controls />
                         </div>
                         <TextField
+                          isStreaming={isStreaming}
                           text={chat.parts.message}
                           onSubmit={(prompt: string) => {
                             onUpdate(prompt, idx);
@@ -298,7 +337,7 @@ const VisionPage: NextPage = () => {
             <Button
               className="col-span-12 md:col-span-3 lg:col-span-2"
               type="submit"
-              disabled={isLoading}
+              disabled={isLoading || isStreaming}
             >
               Generate
             </Button>

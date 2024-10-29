@@ -1,9 +1,8 @@
 'use client';
 
 import Heading from '@/components/heading';
-import { routes } from '@/lib/constant';
+import { BATCH_SIZE, MAX_COUNT, SPEED, routes } from '@/lib/constant';
 import { NextPage } from 'next';
-
 import { z } from 'zod';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { useForm } from 'react-hook-form';
@@ -39,9 +38,9 @@ const CodeGenerationPage: NextPage = () => {
   const messagesEndRef = useRef(null);
 
   const [isLoading, setIsLoading] = useState(false);
-  const [text, setText] = useState<string | null>(null);
   const [isCollapse, setIsCollapse] = useState<boolean>(true);
-  const { contents, setContent, createContent } = useCodeStore();
+  const { contents, setContent, createContent, isStreaming, setIsStreaming, setText, text } =
+    useCodeStore();
   const [updateNo, setUpdateNo] = useState<number | null>(null);
   const { count, setCount, isPro } = useCountStore();
   const { setIsOpen } = useSubscriptionModalStore();
@@ -55,7 +54,7 @@ const CodeGenerationPage: NextPage = () => {
 
   const checkUserApiLimit = () => {
     if (isPro) return false;
-    if (user && count >= 5) {
+    if (user && count >= MAX_COUNT) {
       setIsOpen(true);
       return true;
     }
@@ -64,30 +63,46 @@ const CodeGenerationPage: NextPage = () => {
 
   const increaseApiCount = async () => {
     if (isPro) return;
-    if (user && !isPro && count < 5) {
+    if (user && !isPro && count < MAX_COUNT) {
       await insertUserApiLmit(user.id, count + 1);
       setCount(count + 1);
     }
   };
 
+  const getUpdatedContents = (idx: number, value: string) => {
+    const chat = contents?.[idx + 1] ?? undefined;
+    const isModelChat = chat?.role === 'model';
+
+    const updatedContents = [...contents];
+    updatedContents[idx].parts[0].text = value;
+    if (chat && isModelChat) {
+      updatedContents[idx + 1].parts[0].text = 'Genius is thinking...';
+    } else {
+      const newChat = createContent('model', 'Genius is thinking...');
+      updatedContents.splice(idx + 1, 0, newChat);
+    }
+    return updatedContents;
+  };
+
   const onUpdate = async (value: string, idx: number) => {
     try {
       if (checkUserApiLimit()) return;
+      if (isStreaming) return;
 
-      //updated prompt
-      const tempContents = contents.slice(0, idx);
+      //prepare data
       const newChat = createContent('user', value);
+      const tempContents = contents.slice(0, idx);
       tempContents.push(newChat);
 
-      const updatedContents = [...contents];
-      updatedContents[idx].parts[0].text = value;
-      updatedContents[idx + 1].parts[0].text = 'Genius is thinking...';
+      //updated prompt
+      const updatedContents = getUpdatedContents(idx, value);
       setContent(updatedContents);
 
-      const modelResponse = await generateStreamResponse(tempContents);
       setUpdateNo(idx + 1);
+      const modelResponse = await generateStreamResponse(tempContents);
       const fullResponseText = await processStreamResponse(modelResponse);
       updatedContents[idx + 1].parts[0].text = fullResponseText;
+
       setContent(updatedContents);
       setText(null);
       setUpdateNo(null);
@@ -146,14 +161,15 @@ const CodeGenerationPage: NextPage = () => {
     let done = false;
 
     setText('');
+    setIsStreaming(true);
     let fullResponseText = '';
-    const batchSize = 5;
     let count = 0;
 
     while (!done) {
       const { value, done: doneReading } = await reader.read();
       done = doneReading;
 
+      //display batch of character after 25ms
       if (value) {
         const chunk = decoder.decode(value, { stream: true });
 
@@ -161,14 +177,14 @@ const CodeGenerationPage: NextPage = () => {
           fullResponseText += chunk[i];
 
           // If we've reached the batch size, update the state
-          if (count >= batchSize) setText(fullResponseText);
-          count >= batchSize ? (count = 0) : count++;
+          if (count >= BATCH_SIZE) setText(fullResponseText);
+          count >= BATCH_SIZE ? (count = 0) : count++;
 
-          // Yield to the UI for each chunk
-          await new Promise(resolve => setTimeout(resolve, 5));
+          await new Promise(resolve => setTimeout(resolve, SPEED));
         }
       }
     }
+    setIsStreaming(false);
     return fullResponseText;
   };
 
@@ -200,7 +216,7 @@ const CodeGenerationPage: NextPage = () => {
                 <div
                   key={idx}
                   className={cn(
-                    'my-4 flex flex-col items-start gap-x-8 gap-y-1 rounded-md p-4 md:flex-row md:items-center',
+                    'my-4 flex w-full flex-col items-start gap-y-1 rounded-md p-4 md:flex-row md:items-center md:gap-x-8',
                     isModel ? 'bg-accent' : 'border bg-white'
                   )}
                 >
@@ -225,6 +241,7 @@ const CodeGenerationPage: NextPage = () => {
                   )}
                   {!isModel && (
                     <TextField
+                      isStreaming={isStreaming}
                       text={chat.parts?.[0].text}
                       onSubmit={(prompt: string) => {
                         onUpdate(prompt, idx);
@@ -239,7 +256,7 @@ const CodeGenerationPage: NextPage = () => {
             {updateNo === null && text && (
               <div
                 className={
-                  'my-4 flex flex-col items-start gap-x-8 gap-y-2 rounded-md bg-accent p-4 lg:flex-row lg:items-center'
+                  'my-4 flex w-full flex-col items-start gap-y-2 rounded-md bg-accent p-4 md:gap-x-8 lg:flex-row lg:items-center'
                 }
               >
                 <Image
@@ -288,7 +305,7 @@ const CodeGenerationPage: NextPage = () => {
               <Button
                 className="col-span-12 md:col-span-3 lg:col-span-2"
                 type="submit"
-                disabled={isLoading}
+                disabled={isLoading || isStreaming}
               >
                 Generate
               </Button>

@@ -1,7 +1,7 @@
 'use client';
 
 import Heading from '@/components/heading';
-import { routes } from '@/lib/constant';
+import { BATCH_SIZE, SPEED, routes } from '@/lib/constant';
 import { NextPage } from 'next';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -32,7 +32,7 @@ const DocumentPage: NextPage = () => {
   const [isLoading, setIsLoading] = useState(false);
   const messagesEndRef = useRef(null);
 
-  const { history, setHistory, createChat } = useDocumentStore();
+  const { history, setHistory, createChat, isStreaming, setIsStreaming } = useDocumentStore();
   const [message, setMessage] = useState<string>('');
   const [updateNo, setUpdateNo] = useState<number | null>(null);
   const [text, setText] = useState<string | null>(null);
@@ -59,32 +59,44 @@ const DocumentPage: NextPage = () => {
     }
   };
 
+  const getUpdatedHistory = (idx: number, value: string) => {
+    const chat = history?.[idx + 1] ?? undefined;
+    const isModelChat = chat?.role === 'model';
+
+    const updatedHistory = [...history];
+    updatedHistory[idx].parts.message = value;
+    if (chat && isModelChat) {
+      updatedHistory[idx + 1].parts = 'Genius is thinking...';
+    } else {
+      const newChat = createChat('model', 'Genius is thinking...');
+      updatedHistory.splice(idx + 1, 0, newChat);
+    }
+    return updatedHistory;
+  };
+
   const onUpdate = async (value: string, idx: number) => {
     try {
       if (checkUserApiLimit()) return;
+      if (isStreaming) return;
 
-      const tempHistory = history[idx];
-      tempHistory.parts.message = value;
+      const chat = history[idx];
 
       // updating prompt
-      let newHistory = history;
-      newHistory[idx].parts.message = value;
-      newHistory[idx + 1].parts = 'Genius is thinking...';
-      setHistory(newHistory);
+      let updatedHistory = getUpdatedHistory(idx, value);
+      setHistory(updatedHistory);
 
       const modelResponse = await generateStreamResponse({
-        message: tempHistory.parts.message,
-        file: tempHistory.parts.file,
+        message: value,
+        file: chat.parts.file,
       });
       setUpdateNo(idx + 1);
       const fullResponseText = await processStreamResponse(modelResponse);
-      newHistory[idx + 1].parts = fullResponseText;
-      setHistory(newHistory);
+      updatedHistory[idx + 1].parts = fullResponseText;
+      setHistory(updatedHistory);
       setUpdateNo(null);
       setText(null);
       await increaseApiCount();
     } catch (error) {
-      console.log(error, history);
       toast.error('something went wrong.');
     }
   };
@@ -146,8 +158,8 @@ const DocumentPage: NextPage = () => {
     let done = false;
 
     setText('');
+    setIsStreaming(true);
     let fullResponseText = '';
-    const batchSize = 5;
     let count = 0;
 
     while (!done) {
@@ -161,14 +173,14 @@ const DocumentPage: NextPage = () => {
           fullResponseText += chunk[i];
 
           // If we've reached the batch size, update the state
-          if (count >= batchSize) setText(fullResponseText);
-          count >= batchSize ? (count = 0) : count++;
+          if (count >= BATCH_SIZE) setText(fullResponseText);
+          count >= BATCH_SIZE ? (count = 0) : count++;
 
-          // Yield to the UI for each chunk
-          await new Promise(resolve => setTimeout(resolve, 5));
+          await new Promise(resolve => setTimeout(resolve, SPEED));
         }
       }
     }
+    setIsStreaming(false);
     return fullResponseText;
   };
 
@@ -222,6 +234,7 @@ const DocumentPage: NextPage = () => {
                       <div className="flex flex-col space-y-2">
                         <DocumentUploader file={chat.parts.file} />
                         <TextField
+                          isStreaming={isStreaming}
                           text={chat.parts.message}
                           onSubmit={(prompt: string) => {
                             onUpdate(prompt, idx);
@@ -286,24 +299,21 @@ const DocumentPage: NextPage = () => {
                   type="file"
                   accept="application/pdf, text/*"
                   className="cursor-pointer outline-none ring-0 ring-transparent focus-visible:ring-0 focus-visible:ring-transparent"
-                  onChange={e => {
-                    const file = e.target.files?.[0];
-
-                    if (file) setFile(file);
-                  }}
+                  onChange={e => setFile(e.target.files?.[0])}
                 />
               </div>
             </CollapsibleContent>
             <Button
               className="col-span-12 md:col-span-3 lg:col-span-2"
               type="submit"
-              disabled={isLoading}
+              disabled={isLoading || isStreaming}
             >
               Generate
             </Button>
           </Collapsible>
         </form>
       </div>
+
       <div
         onClick={() => setIsCollapse(!isCollapse)}
         className={cn(

@@ -10,6 +10,10 @@ interface Props {
   createChat: (role: 'user' | 'model', part: any) => visionHistoryType;
   setHistory: (history: visionHistoryType[]) => void;
   clearHistory: () => void;
+  isStreaming: boolean;
+  setIsStreaming: (isStreaming: boolean) => void;
+  text: string | null;
+  setText: (text: string | null) => void;
 }
 
 export const useVisionStore = create<Props>(set => ({
@@ -25,5 +29,13 @@ export const useVisionStore = create<Props>(set => ({
   },
   clearHistory() {
     set(pre => ({ history: [] }));
+  },
+  isStreaming: false,
+  setIsStreaming(isStreaming) {
+    set(pre => ({ isStreaming: isStreaming }));
+  },
+  text: null,
+  setText(text) {
+    set(pre => ({ text: text }));
   },
 }));

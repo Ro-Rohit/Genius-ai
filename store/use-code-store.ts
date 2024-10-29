@@ -10,6 +10,10 @@ interface Props {
   createContent: (role: 'user' | 'model', message: string) => contentType;
   setContent: (content: contentType[]) => void;
   clearContents: () => void;
+  isStreaming: boolean;
+  setIsStreaming: (isStreaming: boolean) => void;
+  text: string | null;
+  setText: (text: string | null) => void;
 }
 
 export const useCodeStore = create<Props>(set => ({
@@ -25,5 +29,15 @@ export const useCodeStore = create<Props>(set => ({
   },
   clearContents() {
     set(pre => ({ contents: [] }));
+    set(pre => ({ text: null }));
+    set(pre => ({ isStreaming: true }));
+  },
+  isStreaming: false,
+  setIsStreaming(isStreaming) {
+    set(pre => ({ isStreaming: isStreaming }));
+  },
+  text: null,
+  setText(text) {
+    set(pre => ({ text: text }));
   },
 }));

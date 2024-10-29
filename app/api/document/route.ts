@@ -10,8 +10,8 @@ import { promisify } from 'util';
 const mkdir = promisify(fs.mkdir);
 const writeFile = promisify(fs.writeFile);
 
-const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY ?? '');
-const fileManager = new GoogleAIFileManager(process.env.GEMINI_API_KEY ?? '');
+const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY !);
+const fileManager = new GoogleAIFileManager(process.env.GEMINI_API_KEY!);
 
 export async function POST(request: Request) {
   try {

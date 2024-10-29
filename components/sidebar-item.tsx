@@ -16,8 +16,9 @@ interface Props {
 }
 
 const SidebarItem: NextPage<Props> = ({ href, color, label, Active, Icon }) => {
-  const { history, clearHistory } = useGetStore(label);
+  const { history, clearHistory, isStreaming } = useGetStore(label);
   const [open, setOpen] = useState(false);
+
   return (
     <>
       <PreferenceModal open={open} setOpen={setOpen} onDelete={clearHistory} title={label} />
@@ -49,6 +50,7 @@ const SidebarItem: NextPage<Props> = ({ href, color, label, Active, Icon }) => {
             className="group p-2"
             variant={'destructive'}
             size={'icon'}
+            disabled={isStreaming}
             onClick={() => setOpen(!open)}
           >
             <Trash className="size-4 scale-125 transition-all" />

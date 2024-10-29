@@ -10,6 +10,10 @@ interface Props {
   createChat: (role: 'user' | 'model', parts: any) => historyType;
   setHistory: (history: historyType[]) => void;
   clearHistory: () => void;
+  isStreaming: boolean;
+  setIsStreaming: (isStreaming: boolean) => void;
+  text: string | null;
+  setText: (text: string | null) => void;
 }
 
 export const useDocumentStore = create<Props>(set => ({
@@ -17,6 +21,7 @@ export const useDocumentStore = create<Props>(set => ({
   setHistory(history) {
     set(pre => ({ history: [...history] }));
   },
+
   createChat(role, parts) {
     return {
       role: role,
@@ -25,5 +30,15 @@ export const useDocumentStore = create<Props>(set => ({
   },
   clearHistory() {
     set({ history: [] });
+  },
+
+  isStreaming: false,
+  setIsStreaming(isStreaming) {
+    set(pre => ({ isStreaming: isStreaming }));
+  },
+
+  text: null,
+  setText(text) {
+    set(pre => ({ text: text }));
   },
 }));

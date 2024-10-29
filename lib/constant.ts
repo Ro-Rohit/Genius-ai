@@ -3,6 +3,7 @@ import { useDocumentStore } from '@/store/use-document-store';
 import { useDescriptorStore } from '@/store/use-descriptor-store';
 import { useImageStore } from '@/store/use-image-store';
 import { useSpeechStore } from '@/store/use-speech-store';
+import { useVisionStore } from '@/store/use-vision-store';
 import {
   LayoutDashboard,
   MessageSquare,
@@ -13,9 +14,10 @@ import {
   VideoIcon,
   LetterText,
 } from 'lucide-react';
-import { useVisionStore } from '@/store/use-vision-store';
 
 export const MAX_COUNT = 5;
+export const BATCH_SIZE = 15;
+export const SPEED = 7;
 
 export const routes = [
   {
@@ -150,51 +152,57 @@ export const testimonialData: Array<testimonialType> = [
 type StoreType = {
   history: Array<any>;
   clearHistory: () => void;
+  isStreaming: boolean;
 };
 
 export const useGetStore = (label: string): StoreType => {
+  let isStreaming = false;
   let store: any;
   let history = <any>[];
   let clearHistory = () => {};
   switch (label) {
     case 'Document':
       store = useDocumentStore();
+      isStreaming = store.isStreaming;
       history = store.history;
       clearHistory = store.clearHistory;
-      return { history, clearHistory };
+      return { isStreaming, history, clearHistory };
 
     case 'Image Generation':
       store = useImageStore();
       history = store.history;
       clearHistory = store.clearHistory;
-      return { history, clearHistory };
+      return { isStreaming, history, clearHistory };
 
     case 'Descriptor':
       store = useDescriptorStore();
+      isStreaming = store.isStreaming;
       history = store.history;
       clearHistory = store.clearHistory;
-      return { history, clearHistory };
+      return { isStreaming, history, clearHistory };
 
     case 'Speech Recognition':
       store = useSpeechStore();
+      isStreaming = store.isStreaming;
       history = store.history;
       clearHistory = store.clearHistory;
-      return { history, clearHistory };
+      return { isStreaming, history, clearHistory };
 
     case 'Code Generation':
       store = useCodeStore();
+      isStreaming = store.isStreaming;
       history = store.contents;
       clearHistory = store.clearContents;
-      return { history, clearHistory };
+      return { isStreaming, history, clearHistory };
 
-    case 'Restore Image':
+    case 'Vision':
       store = useVisionStore();
+      isStreaming = store.isStreaming;
       history = store.history;
       clearHistory = store.clearHistory;
-      return { history, clearHistory };
+      return { isStreaming, history, clearHistory };
 
     default:
-      return { history, clearHistory };
-      break;
+      return { isStreaming, history, clearHistory };
   }
 };

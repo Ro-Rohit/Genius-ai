@@ -1,7 +1,7 @@
 'use client';
 
 import Heading from '@/components/heading';
-import { routes } from '@/lib/constant';
+import { BATCH_SIZE, SPEED, routes } from '@/lib/constant';
 import { NextPage } from 'next';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -40,7 +40,7 @@ const DescriptorPage: NextPage = () => {
 
   const messagesEndRef = useRef(null);
   const fileRef = useRef<HTMLInputElement>(null);
-  const { history, setHistory, createChat } = useDescriptorStore();
+  const { history, setHistory, createChat, isStreaming, setIsStreaming } = useDescriptorStore();
   const { count, setCount, isPro } = useCountStore();
   const { setIsOpen } = useSubscriptionModalStore();
 
@@ -71,24 +71,38 @@ const DescriptorPage: NextPage = () => {
     return userChat;
   };
 
+  const getUpdatedHistory = (idx: number, value: string) => {
+    const chat = history?.[idx + 1] ?? undefined;
+    const isModelChat = chat?.role === 'model';
+
+    const updatedHistory = [...history];
+    updatedHistory[idx].content[1].text = value;
+
+    if (chat && isModelChat) {
+      updatedHistory[idx + 1].content = 'Genius is thinking...';
+    } else {
+      const newChat = createChat('model', 'Genius is thinking...');
+      updatedHistory.splice(idx + 1, 0, newChat);
+    }
+    return updatedHistory;
+  };
+
   const onUpdate = async (value: string, idx: number) => {
     try {
       if (checkUserApiLimit()) return;
+      if (isStreaming) return;
 
       const tempHistory = history[idx];
       tempHistory.content[1].text = value;
 
-      // updating prompt
-      let newHistory = history;
-      newHistory[idx].content[1].text = value;
-      newHistory[idx + 1].content = 'Genius is thinking...';
-      setHistory(newHistory);
+      const updatedHistory = getUpdatedHistory(idx, value)
+      setHistory(updatedHistory);
 
       const modelResponse = await generateStreamResponse([tempHistory]);
       setUpdateNo(idx + 1);
       const fullResponseText = await processStreamResponse(modelResponse);
-      newHistory[idx + 1].content = fullResponseText;
-      setHistory(newHistory);
+      updatedHistory[idx + 1].content = fullResponseText;
+      setHistory(updatedHistory);
       setUpdateNo(null);
       setText(null);
       await increaseApiCount();
@@ -160,8 +174,8 @@ const DescriptorPage: NextPage = () => {
     let done = false;
 
     setText('');
+    setIsStreaming(true);
     let fullResponseText = '';
-    const batchSize = 5;
     let count = 0;
 
     while (!done) {
@@ -175,19 +189,18 @@ const DescriptorPage: NextPage = () => {
           fullResponseText += chunk[i];
 
           // If we've reached the batch size, update the state
-          if (count >= batchSize) setText(fullResponseText);
-          count >= batchSize ? (count = 0) : count++;
+          if (count >= BATCH_SIZE) setText(fullResponseText);
+          count >= BATCH_SIZE ? (count = 0) : count++;
 
-          // Yield to the UI for each chunk
-          await new Promise(resolve => setTimeout(resolve, 5));
+          await new Promise(resolve => setTimeout(resolve, SPEED));
         }
       }
     }
+    setIsStreaming(false);
     return fullResponseText;
   };
-
   useLoadAlert();
-  useScroll(messagesEndRef, [history, setHistory, isLoading, setIsLoading]);
+  useScroll(messagesEndRef, [isLoading, setIsLoading]);
 
   return (
     <section className="relative h-[calc(100vh-130px)] w-full px-2">
@@ -243,6 +256,7 @@ const DescriptorPage: NextPage = () => {
                       <div className="flex w-full flex-col space-y-2">
                         <ImageCard url={chat.content[0].image_url?.url ?? ''} />
                         <TextField
+                          isStreaming={isStreaming}
                           text={chat.content[1].text}
                           onSubmit={(prompt: string) => {
                             onUpdate(prompt, idx);
@@ -315,7 +329,7 @@ const DescriptorPage: NextPage = () => {
             <Button
               className="col-span-12 md:col-span-3 lg:col-span-2"
               type="submit"
-              disabled={isLoading}
+              disabled={isLoading || isStreaming}
             >
               Generate
             </Button>
