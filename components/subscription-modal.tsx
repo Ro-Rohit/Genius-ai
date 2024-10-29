@@ -13,7 +13,7 @@ import { Badge } from './ui/badge';
 import { routes } from '@/lib/constant';
 import Link from 'next/link';
 import { Card, CardContent } from './ui/card';
-import { api, cn } from '@/lib/utils';
+import { cn } from '@/lib/utils';
 import { Check, Zap } from 'lucide-react';
 import { toast } from 'sonner';
 import { useState } from 'react';
@@ -24,10 +24,10 @@ const SubscriptionModal: NextPage = ({}) => {
   const onSubscribe = async () => {
     try {
       setLoading(true);
-      const response = await api.get('/api/stripe');
-      window.location.href = await response.data.url;
+      const response = await fetch('/api/stripe', { method: 'GET' });
+      const result = await response.json();
+      window.location.href = await result.url;
     } catch (error) {
-      console.log(error, 'STRIPE_CLIENT_ERROR');
       toast.error('Something went wrong');
     }
     setLoading(false);

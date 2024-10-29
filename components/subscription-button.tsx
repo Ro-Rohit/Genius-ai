@@ -2,7 +2,6 @@ import { NextPage } from 'next';
 import { Button } from './ui/button';
 import { Loader, Zap } from 'lucide-react';
 import { useState } from 'react';
-import { api } from '@/lib/utils';
 import { toast } from 'sonner';
 
 interface Props {
@@ -14,10 +13,10 @@ const SubscriptionButton: NextPage<Props> = ({ isPro }) => {
   const onSubscribe = async () => {
     try {
       setLoading(true);
-      const response = await api.get('/api/stripe');
-      window.location.href = await response.data.url;
+      const response = await fetch('/api/stripe', { method: 'GET' });
+      const result = await response.json();
+      window.location.href = result.url;
     } catch (error) {
-      console.log(error, 'STRIPE_CLIENT_ERROR');
       toast.error('Something went wrong');
     }
     setLoading(false);

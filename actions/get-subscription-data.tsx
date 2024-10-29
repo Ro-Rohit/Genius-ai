@@ -18,10 +18,8 @@ export const getSubscriptionData = async (userId: string) => {
     .select('*')
     .eq('userId', userId)
     .single();
-  if (error) {
-    console.log(error, 'error');
-    return null;
-  }
+  if (error) return null;
+  
   if (!data) return false;
   return data;
 };

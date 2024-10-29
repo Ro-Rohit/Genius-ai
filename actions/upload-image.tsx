@@ -5,10 +5,8 @@ export const uploadImage = async (file: File) => {
   const { data: image, error } = await supabase.storage
     .from('images')
     .upload(`public/${file.name}`, file, { upsert: true });
-  if (error) {
-    console.log(error);
-    return null;
-  }
+  if (error) return null;
+  
   return image.path;
 };
 

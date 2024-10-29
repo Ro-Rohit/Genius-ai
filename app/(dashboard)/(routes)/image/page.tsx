@@ -13,7 +13,7 @@ import { Form, FormControl, FormField, FormItem } from '@/components/ui/form';
 import { Input } from '@/components/ui/input';
 import { useRef, useState } from 'react';
 import { toast } from 'sonner';
-import { api, cn } from '@/lib/utils';
+import { cn } from '@/lib/utils';
 import Image from 'next/image';
 import { useUser } from '@clerk/nextjs';
 import { useLoadAlert } from '@/components/useLoadAlert';
@@ -134,12 +134,18 @@ const ImageGenerationPage: NextPage = () => {
     if (!result) result = await generateResponse('/api/image/toybox', message);
     if (!result) result = await generateResponse('/api/image/shakkar-llr', message);
     if (!result) result = await generateResponse('/api/image/shakkar-occ', message);
+    if (!result) throw Error('no response');
     return URL.createObjectURL(result);
   };
 
   const generateResponse = async (endpoint: string, message: string) => {
-    const res = api.post(endpoint, { message: message }, { responseType: 'blob' });
-    const result = (await res).data;
+    const res = await fetch(endpoint, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ message: message }),
+    });
+    if (!res.ok || !res.body) return;
+    const result = await res.blob();
     return result;
   };
 

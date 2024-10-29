@@ -107,7 +107,6 @@ const DescriptorPage: NextPage = () => {
       setText(null);
       await increaseApiCount();
     } catch (error) {
-      console.log(error, history);
       toast.error('something went wrong.');
     }
   };

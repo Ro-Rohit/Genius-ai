@@ -1,15 +1,11 @@
 import { clsx, type ClassValue } from 'clsx';
 import { twMerge } from 'tailwind-merge';
-import axios from 'axios';
 import { createBrowserClient } from '@supabase/ssr';
 import { loadStripe } from '@stripe/stripe-js';
 
 export function cn(...inputs: ClassValue[]) {
   return twMerge(clsx(inputs));
 }
-
-const baseURL = process.env.NEXT_PUBLIC_BASE_URL;
-export const api = axios.create({ baseURL });
 
 export function createClient() {
   return createBrowserClient(
